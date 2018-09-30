@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14113" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina5_5" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14088"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="AudioPlayer" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="TQ3-dU-QHp">
+                                <rect key="frame" x="0.0" y="692" width="414" height="44"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                <items>
+                                    <barButtonItem title="Play" id="t6V-gu-PEJ">
+                                        <connections>
+                                            <action selector="play:" destination="BYZ-38-t0r" id="clz-b1-mFa"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="hwb-5M-SPB"/>
+                                    <barButtonItem title="Pause" id="Vqe-0s-mJc">
+                                        <connections>
+                                            <action selector="pause:" destination="BYZ-38-t0r" id="UyY-I7-2It"/>
+                                        </connections>
+                                    </barButtonItem>
+                                </items>
+                            </toolbar>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="XpL-z9-Iay">
+                                <rect key="frame" x="94" y="546" width="290" height="31"/>
+                                <connections>
+                                    <action selector="volume:" destination="BYZ-38-t0r" eventType="valueChanged" id="sGB-Ls-irg"/>
+                                </connections>
+                            </slider>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Devil-May-Cry-5-Gamescom-Preview-01-Logo-740x509.jpg" translatesAutoresizingMaskIntoConstraints="NO" id="1PF-ZS-lLu">
+                                <rect key="frame" x="32" y="52" width="350" height="488"/>
+                                <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </imageView>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="Ppk-Bv-SUs">
+                                <rect key="frame" x="94" y="618" width="290" height="31"/>
+                                <connections>
+                                    <action selector="updateProgressManually:" destination="BYZ-38-t0r" eventType="valueChanged" id="POU-L3-07o"/>
+                                </connections>
+                            </slider>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Volume" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sYN-Uf-Q3C">
+                                <rect key="frame" x="15.999999999999996" y="555.66666666666663" width="57.666666666666657" height="20.333333333333371"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Progress" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rV1-AL-ZId">
+                                <rect key="frame" x="16" y="627" width="68" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="1PF-ZS-lLu" secondAttribute="trailing" constant="32" id="3Y4-eZ-5S4"/>
+                            <constraint firstItem="rV1-AL-ZId" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="60P-yJ-9CQ"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="Ppk-Bv-SUs" secondAttribute="bottom" constant="88" id="BbJ-H4-iH0"/>
+                            <constraint firstItem="Ppk-Bv-SUs" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="96" id="HGJ-bj-qHW"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="rV1-AL-ZId" secondAttribute="bottom" constant="88" id="JDX-wl-LD6"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="1PF-ZS-lLu" secondAttribute="bottom" constant="196" id="NOo-SK-VFK"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="sYN-Uf-Q3C" secondAttribute="bottom" constant="160" id="P89-cm-vfJ"/>
+                            <constraint firstItem="XpL-z9-Iay" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="96" id="RGx-U4-9qy"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="XpL-z9-Iay" secondAttribute="trailing" constant="32" id="Sli-S1-juF"/>
+                            <constraint firstItem="sYN-Uf-Q3C" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="TGk-el-HjT"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="XpL-z9-Iay" secondAttribute="bottom" constant="160" id="XGe-3X-44K"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="Ppk-Bv-SUs" secondAttribute="trailing" constant="32" id="a1h-hG-KQB"/>
+                            <constraint firstItem="1PF-ZS-lLu" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="32" id="dG9-EC-uHd"/>
+                            <constraint firstItem="1PF-ZS-lLu" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="32" id="ieA-Lp-5l9"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                    </view>
+                    <connections>
+                        <outlet property="progress" destination="Ppk-Bv-SUs" id="3i9-Av-gfy"/>
+                        <outlet property="volumeSlider" destination="XpL-z9-Iay" id="TYc-lZ-gix"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="24.637681159420293" y="23.64130434782609"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="Devil-May-Cry-5-Gamescom-Preview-01-Logo-740x509.jpg" width="740" height="509"/>
+    </resources>
+</document>

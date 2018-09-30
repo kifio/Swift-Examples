@@ -1,0 +1,1 @@
+Searching strings in stdin.
