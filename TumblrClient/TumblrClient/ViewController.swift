@@ -12,56 +12,24 @@ import OAuthSwift
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
     
     static let CELL_ID = "cell"
-    static let OAUTH_TOKEN = "oauthToken"
     
     let network = Network()
     let storage = Storage()
-    
-    static var apiKeys: Dictionary<String, String> {
-        if let path = Bundle.main.path(forResource: "TumblrKeys", ofType: "plist") {
-            return NSDictionary(contentsOfFile: path) as! Dictionary<String, String>
-        } else {
-            return Dictionary<String, String>()
-        }
-    }
-    
-    let oauthswift: OAuth1Swift = OAuth1Swift(
-        consumerKey:    ViewController.apiKeys["ApiKey"] ?? "",
-        consumerSecret: ViewController.apiKeys["ApiSecret"] ?? "",
-        requestTokenUrl: "https://www.tumblr.com/oauth/request_token",
-        authorizeUrl:    "https://www.tumblr.com/oauth/authorize",
-        accessTokenUrl:  "https://www.tumblr.com/oauth/access_token")
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        if isUserAuthorized() {
+        if network.getCredential() != nil {
+            network.createClient()
             showTumblr()
         } else {
-            authorize()
+            network.authorize(viewController: self)
         }
     }
     
-    private func isUserAuthorized() -> Bool {
-        return UserDefaults.standard.object(forKey: ViewController.OAUTH_TOKEN) != nil
-    }
-    
-    private func authorize() {
-        self.oauthswift.authorizeURLHandler = SafariURLHandler(viewController: self, oauthSwift: oauthswift)
-        self.oauthswift.authorize(
-            withCallbackURL: URL(string: "tumblr-client://oauth-callback/tumblr")!,
-            success: { credential, response, parameters in
-                print(credential.oauthTokenSecret)
-                UserDefaults.standard.set(credential.oauthToken, forKey: ViewController.OAUTH_TOKEN)
-                self.showTumblr()
-            },
-            failure: { error in
-                print(error.localizedDescription)
-            })
-    }
-    
-    private func showTumblr() {
+    func showTumblr() {
         addTableView()
         addSearchBar()
+        addLogoutButton()
     }
     
     private func addTableView() {
@@ -75,10 +43,24 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     private func addSearchBar() {
         let uiSearchBar = UISearchBar()
-        uiSearchBar.frame =  CGRect(x: 0, y: 22, width: UIScreen.main.bounds.width, height: 44)
+        uiSearchBar.frame =  CGRect(x: 0, y: 22, width: UIScreen.main.bounds.width - 64, height: 44)
         uiSearchBar.delegate = self
         uiSearchBar.searchBarStyle = UISearchBarStyle.minimal
         self.view.addSubview(uiSearchBar)
+    }
+    
+    private func addLogoutButton() {
+        let logoutButton = UIButton()
+        logoutButton.frame = CGRect(x: UIScreen.main.bounds.width - 66, y: 22, width: 64, height: 44)
+        logoutButton.setTitle("Logout", for: UIControlState.normal)
+        logoutButton.setTitleColor(self.view.tintColor, for: UIControlState.normal)
+        logoutButton.addTarget(self, action: #selector(logout), for: .touchUpInside)
+        logoutButton.titleLabel?.font = UIFont.systemFont(ofSize: 16)
+        self.view.addSubview(logoutButton)
+    }
+    
+    @objc func logout() {
+        network.logout(viewController: self)
     }
 
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
@@ -91,14 +73,14 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: ViewController.CELL_ID, for: indexPath as IndexPath)
-        self.network.loadImage(stringUrl: self.storage.mock[indexPath.row], completionHandler: { response in
-            if let image = UIImage(data: response.result.value!) {
-                let imageView = UIImageView(image: image)
-                imageView.contentMode = .scaleToFill
-                imageView.frame = UIEdgeInsetsInsetRect(cell.contentView.frame, UIEdgeInsetsMake(16, 16, 16, 16))
-                cell.contentView.addSubview(imageView)
-            }
-        })
+//        self.network.loadImage(stringUrl: self.storage.mock[indexPath.row], completionHandler: { response in
+//            if let image = UIImage(data: response.result.value!) {
+//                let imageView = UIImageView(image: image)
+//                imageView.contentMode = .scaleToFill
+//                imageView.frame = UIEdgeInsetsInsetRect(cell.contentView.frame, UIEdgeInsetsMake(16, 16, 16, 16))
+//                cell.contentView.addSubview(imageView)
+//            }
+//        })
         return cell
     }
     
