@@ -62,17 +62,16 @@ class Network: NSObject {
         self.oauthswift.authorize(
             withCallbackURL: URL(string: "tumblr-client://oauth-callback/tumblr")!,
             success: { credential, response, parameters in
-                print(credential.oauthTokenSecret)
                 do {
                     UserDefaults.standard.set(try PropertyListEncoder().encode(credential), forKey: Network.OAUTH_CREDENTIAL)
                 } catch let err {
-                    print(err)
+
                 }
                 self.createClient()
                 viewController.showTumblr()
         },
-            failure: { error in
-                print(error.localizedDescription)
+        failure: { error in
+
         })
     }
     
@@ -87,7 +86,6 @@ class Network: NSObject {
             do {
             	return try PropertyListDecoder().decode(OAuthSwiftCredential.self, from: data)
             } catch let err {
-                print(err)
                 return nil
             }
         } else {
@@ -96,39 +94,56 @@ class Network: NSObject {
     }
     
     func logout(viewController: ViewController) {
-        var controller = SFSafariViewController(url: URL(string: "https://www.tumblr.com/logout")!)
-        viewController.present(controller, animated: true, completion: nil)
+        viewController.present(SFSafariViewController(url: URL(string: "https://www.tumblr.com/logout")!), animated: true, completion: nil)
         UserDefaults.standard.removeObject(forKey: Network.OAUTH_CREDENTIAL)
     }
   
-    func search(tag: String?) {
+    func search(tag: String?, completion: @escaping ([String]) -> Void, failure: @escaping (String) -> Void) {
         if tag != nil {
-            self.tag = tag
-            self.before = Int(NSDate().timeIntervalSince1970 * 1000)
-            loadMore()
+            if tag != self.tag {
+                self.tag = tag
+                self.before = Int(NSDate().timeIntervalSince1970 * 1000)
+            }
+            loadMore(completion: completion, failure: failure)
         } else {
             clearParameters()
         }
     }
     
-    func loadMore() {
+    func loadMore(completion: @escaping ([String]) -> Void, failure: @escaping (String) -> Void) {
         url.queryItems = buildQueryItems()
         print(url.url!.absoluteString)
-        oauthswift.client.get(url.url!.absoluteString, success: { response in
-            self.handleResponse(data: response.data)
-        }, failure: { error in
-            print(error)
+        let _ = oauthswift.client.get(url.url!.absoluteString, success: { response in
+            self.handleResponse(data: response.data, completion: completion, failure: failure)
+        }, failure: { err in
+            failure(err.localizedDescription)
         })
     }
     
-    func handleResponse(data: Data) {
+    func loadImage(stringUrl: String, completionHandler: @escaping (Data) -> Void) {
+        let _ = oauthswift.client.get(stringUrl, success: { response in
+            DispatchQueue.main.async {
+                completionHandler(response.data)
+            }
+        }, failure: { err in
+
+        })
+    }
+    
+    func handleResponse(data: Data, completion: @escaping ([String]) -> Void, failure: @escaping (String) -> Void) {
         do {
             let serverResponse = try JSONDecoder().decode(Response.self, from: data)
+            var photoUrls = [String]()
             for post in serverResponse.response {
-                print(post.post_url)
+                if let photos = post.photos {
+                    for photo in photos {
+                       photoUrls.append(photo.original_size.url)
+                    }
+                }
             }
+            completion(photoUrls)
         } catch let err {
-            print(err)
+            failure(err.localizedDescription)
         }
     }
     

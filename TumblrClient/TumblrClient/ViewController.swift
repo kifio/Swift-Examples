@@ -14,8 +14,11 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     static let CELL_ID = "cell"
     
     let network = Network()
-    let storage = Storage()
-
+    var photos = [String]()
+    
+    var imagesTableView: UITableView? = nil
+    var uiSearchBar: UISearchBar? = nil
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         if network.getCredential() != nil {
@@ -33,20 +36,20 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
     private func addTableView() {
-        let imagesTableView = UITableView()
-        imagesTableView.frame = CGRect(x: 0, y: 66, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-        imagesTableView.dataSource = self
-        imagesTableView.delegate = self
-        imagesTableView.register(UITableViewCell.self, forCellReuseIdentifier: ViewController.CELL_ID)
-        self.view.addSubview(imagesTableView)
+        imagesTableView = UITableView()
+        imagesTableView!.frame = CGRect(x: 0, y: 66, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+        imagesTableView!.dataSource = self
+        imagesTableView!.delegate = self
+        imagesTableView!.register(UITableViewCell.self, forCellReuseIdentifier: ViewController.CELL_ID)
+        self.view.addSubview(imagesTableView!)
     }
     
     private func addSearchBar() {
-        let uiSearchBar = UISearchBar()
-        uiSearchBar.frame =  CGRect(x: 0, y: 22, width: UIScreen.main.bounds.width - 64, height: 44)
-        uiSearchBar.delegate = self
-        uiSearchBar.searchBarStyle = UISearchBarStyle.minimal
-        self.view.addSubview(uiSearchBar)
+        uiSearchBar = UISearchBar()
+        uiSearchBar!.frame =  CGRect(x: 0, y: 22, width: UIScreen.main.bounds.width - 64, height: 44)
+        uiSearchBar!.delegate = self
+        uiSearchBar!.searchBarStyle = UISearchBarStyle.minimal
+        self.view.addSubview(uiSearchBar!)
     }
     
     private func addLogoutButton() {
@@ -64,27 +67,42 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
 
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        network.search(tag: searchBar.text)
+        search()
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.storage.mock.count
+        return self.photos.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: ViewController.CELL_ID, for: indexPath as IndexPath)
-//        self.network.loadImage(stringUrl: self.storage.mock[indexPath.row], completionHandler: { response in
-//            if let image = UIImage(data: response.result.value!) {
-//                let imageView = UIImageView(image: image)
-//                imageView.contentMode = .scaleToFill
-//                imageView.frame = UIEdgeInsetsInsetRect(cell.contentView.frame, UIEdgeInsetsMake(16, 16, 16, 16))
-//                cell.contentView.addSubview(imageView)
-//            }
-//        })
+        self.network.loadImage(stringUrl: photos[indexPath.row], completionHandler: { response in
+            if let image = UIImage(data: response) {
+                let imageView = UIImageView(image: image)
+                imageView.contentMode = .scaleToFill
+                imageView.frame = UIEdgeInsetsInsetRect(cell.contentView.frame, UIEdgeInsetsMake(16, 16, 16, 16))
+                cell.contentView.addSubview(imageView)
+            }
+        })
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return self.view.frame.width
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if indexPath.row == photos.count - 1 {
+            search()
+        }
+    }
+    
+    func search() {
+        network.search(tag: uiSearchBar?.text, completion: { urls in
+            self.photos.append(contentsOf: urls)
+            self.imagesTableView!.reloadData()
+        }, failure: { msg in
+//            print(msg)
+        })
     }
 }
