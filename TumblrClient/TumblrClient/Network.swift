@@ -31,7 +31,6 @@ class Network: NSObject {
     var url: URLComponents = URLComponents(string: "https://api.tumblr.com/v2/tagged") ?? URLComponents()
     var oauthSwiftClient: OAuthSwiftClient?
     var before = 0
-    var tag: String? = nil
     
     struct Response: Codable {
         let meta: Meta
@@ -98,20 +97,14 @@ class Network: NSObject {
         UserDefaults.standard.removeObject(forKey: Network.OAUTH_CREDENTIAL)
     }
   
-    func search(tag: String?, completion: @escaping ([String]) -> Void, failure: @escaping (String) -> Void) {
+    func search(tag: String, before: Int, completion: @escaping ([String]) -> Void, failure: @escaping (String) -> Void) {
         if tag != nil {
-            if tag != self.tag {
-                self.tag = tag
-                self.before = Int(NSDate().timeIntervalSince1970 * 1000)
-            }
-            loadMore(completion: completion, failure: failure)
-        } else {
-            clearParameters()
+            loadMore(tag: tag, before: before, completion: completion, failure: failure)
         }
     }
     
-    func loadMore(completion: @escaping ([String]) -> Void, failure: @escaping (String) -> Void) {
-        url.queryItems = buildQueryItems()
+    func loadMore(tag: String, before: Int, completion: @escaping ([String]) -> Void, failure: @escaping (String) -> Void) {
+        url.queryItems = buildQueryItems(tag, before)
         print(url.url!.absoluteString)
         let _ = oauthswift.client.get(url.url!.absoluteString, success: { response in
             self.handleResponse(data: response.data, completion: completion, failure: failure)
@@ -147,14 +140,10 @@ class Network: NSObject {
         }
     }
     
-    func buildQueryItems() -> [URLQueryItem] {
+    func buildQueryItems(_ tag: String, _ before: Int) -> [URLQueryItem] {
         return [URLQueryItem(name: "limit", value: "20"),
                 URLQueryItem(name: "before", value: "\(before)"),
-                URLQueryItem(name: "tag", value: tag!)]
-    }
-    
-    func clearParameters() {
-        tag = nil
+                URLQueryItem(name: "tag", value: tag)]
     }
 }
 

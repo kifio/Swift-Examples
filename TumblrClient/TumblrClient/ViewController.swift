@@ -14,8 +14,9 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     static let CELL_ID = "cell"
     
     let network = Network()
-    var photos = [String]()
-    
+    var images = [(url: String, image: UIImage?)]()
+    var tag: String? = nil
+    var before: Int = 0
     var imagesTableView: UITableView? = nil
     var uiSearchBar: UISearchBar? = nil
     
@@ -32,7 +33,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     func showTumblr() {
         addTableView()
         addSearchBar()
-        addLogoutButton()
     }
     
     private func addTableView() {
@@ -46,20 +46,10 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     private func addSearchBar() {
         uiSearchBar = UISearchBar()
-        uiSearchBar!.frame =  CGRect(x: 0, y: 22, width: UIScreen.main.bounds.width - 64, height: 44)
+        uiSearchBar!.frame =  CGRect(x: 0, y: 22, width: UIScreen.main.bounds.width, height: 44)
         uiSearchBar!.delegate = self
         uiSearchBar!.searchBarStyle = UISearchBarStyle.minimal
         self.view.addSubview(uiSearchBar!)
-    }
-    
-    private func addLogoutButton() {
-        let logoutButton = UIButton()
-        logoutButton.frame = CGRect(x: UIScreen.main.bounds.width - 66, y: 22, width: 64, height: 44)
-        logoutButton.setTitle("Logout", for: UIControlState.normal)
-        logoutButton.setTitleColor(self.view.tintColor, for: UIControlState.normal)
-        logoutButton.addTarget(self, action: #selector(logout), for: .touchUpInside)
-        logoutButton.titleLabel?.font = UIFont.systemFont(ofSize: 16)
-        self.view.addSubview(logoutButton)
     }
     
     @objc func logout() {
@@ -71,20 +61,31 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.photos.count
+        return self.images.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: ViewController.CELL_ID, for: indexPath as IndexPath)
-        self.network.loadImage(stringUrl: photos[indexPath.row], completionHandler: { response in
+        let cell = tableView.dequeueReusableCell(withIdentifier: ViewController.CELL_ID)
+        let index = indexPath.row
+        if images[indexPath.row].image == nil {
+            loadPicture(tableView: tableView, index: index)
+        } else {
+            if (cell != nil) {
+                cell!.imageView!.frame = UIEdgeInsetsInsetRect(cell!.contentView.frame, UIEdgeInsetsMake(16, 16, 16, 16))
+                cell!.imageView!.contentMode = .scaleToFill
+                cell!.imageView?.image = images[index].image
+                tableView.reloadRows(at: [indexPath], with: .none)
+            }
+        }
+        return cell!
+    }
+    
+    func loadPicture(tableView: UITableView, index: Int) {
+        self.network.loadImage(stringUrl: images[index].url, completionHandler: { response in
             if let image = UIImage(data: response) {
-                let imageView = UIImageView(image: image)
-                imageView.contentMode = .scaleToFill
-                imageView.frame = UIEdgeInsetsInsetRect(cell.contentView.frame, UIEdgeInsetsMake(16, 16, 16, 16))
-                cell.contentView.addSubview(imageView)
+                self.images[index].image = image
             }
         })
-        return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -92,17 +93,29 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        if indexPath.row == photos.count - 1 {
+        if indexPath.row == images.count - 1 {
             search()
         }
     }
     
     func search() {
-        network.search(tag: uiSearchBar?.text, completion: { urls in
-            self.photos.append(contentsOf: urls)
-            self.imagesTableView!.reloadData()
-        }, failure: { msg in
-//            print(msg)
-        })
+        
+        if uiSearchBar!.text != self.tag {
+            self.tag = uiSearchBar!.text
+            self.before = Int(NSDate().timeIntervalSince1970 * 1000)
+            self.images.removeAll()
+            self.imagesTableView?.reloadData()
+        }
+        
+        if let tag = self.tag {
+            network.search(tag: tag, before: self.before, completion: { urls in
+                for url in urls {
+                    self.images.append((url: url, image: nil))
+                }
+                self.imagesTableView!.reloadData()
+            }, failure: { msg in
+    //            print(msg)
+            })
+        }
     }
 }
