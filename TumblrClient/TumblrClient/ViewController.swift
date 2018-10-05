@@ -60,32 +60,43 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         search()
     }
     
+    func searchBar(_ searchBar: UISearchBar, textDidChange : String) {
+        if (textDidChange.count == 0) {
+            clear()
+        }
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.images.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: ViewController.CELL_ID)
-        let index = indexPath.row
-        if images[indexPath.row].image == nil {
-            loadPicture(tableView: tableView, index: index)
+        let cell = tableView.dequeueReusableCell(withIdentifier: ViewController.CELL_ID, for: indexPath)
+        cell.imageView?.image = nil
+        if let image = images[indexPath.row].image {
+            setImage(cell: cell, image: image)
         } else {
-            if (cell != nil) {
-                cell!.imageView!.frame = UIEdgeInsetsInsetRect(cell!.contentView.frame, UIEdgeInsetsMake(16, 16, 16, 16))
-                cell!.imageView!.contentMode = .scaleToFill
-                cell!.imageView?.image = images[index].image
-                tableView.reloadRows(at: [indexPath], with: .none)
-            }
+            loadPicture(indexPath: indexPath)
         }
-        return cell!
+        return cell
     }
     
-    func loadPicture(tableView: UITableView, index: Int) {
-        self.network.loadImage(stringUrl: images[index].url, completionHandler: { response in
+    func loadPicture(indexPath: IndexPath) {
+        self.network.loadImage(stringUrl: images[indexPath.row].url, completionHandler: { response in
             if let image = UIImage(data: response) {
-                self.images[index].image = image
+                self.images[indexPath.row].image = image
+                if let cell = self.imagesTableView?.cellForRow(at: indexPath) {
+                    self.setImage(cell: cell, image: image)
+                }
             }
         })
+    }
+    
+    func setImage(cell: UITableViewCell, image: UIImage) {
+        if let imageView = cell.imageView {
+            print("imageView: \(imageView.frame)")
+            imageView.image = image
+        }
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -99,14 +110,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
     func search() {
-        
-        if uiSearchBar!.text != self.tag {
-            self.tag = uiSearchBar!.text
-            self.before = Int(NSDate().timeIntervalSince1970 * 1000)
-            self.images.removeAll()
-            self.imagesTableView?.reloadData()
-        }
-        
+        clear()
         if let tag = self.tag {
             network.search(tag: tag, before: self.before, completion: { urls in
                 for url in urls {
@@ -116,6 +120,15 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             }, failure: { msg in
     //            print(msg)
             })
+        }
+    }
+    
+    func clear() {
+        if uiSearchBar!.text != self.tag {
+            self.tag = uiSearchBar!.text
+            self.before = Int(NSDate().timeIntervalSince1970 * 1000)
+            self.images.removeAll()
+            self.imagesTableView?.reloadData()
         }
     }
 }

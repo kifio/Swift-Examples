@@ -114,13 +114,21 @@ class Network: NSObject {
     }
     
     func loadImage(stringUrl: String, completionHandler: @escaping (Data) -> Void) {
-        let _ = oauthswift.client.get(stringUrl, success: { response in
-            DispatchQueue.main.async {
-                completionHandler(response.data)
+        let url = URL(string: stringUrl)
+        let request = NSMutableURLRequest(url: url!)
+        let task = URLSession.shared.dataTask(with: request as URLRequest) {
+            data, response, error in
+            if error != nil {
+                print(error!)
+            } else {
+                DispatchQueue.main.async {
+                    if data != nil {
+                        completionHandler(data!)
+                    }
+                }
             }
-        }, failure: { err in
-
-        })
+        }
+        task.resume()
     }
     
     func handleResponse(data: Data, completion: @escaping ([String]) -> Void, failure: @escaping (String) -> Void) {
