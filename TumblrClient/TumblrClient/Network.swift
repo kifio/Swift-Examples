@@ -45,7 +45,7 @@ class Network: NSObject {
     struct Post: Codable {
         let type: String
         let post_url: String
-        let before: Int
+        let timestamp: Int
         let photos: [Photo]?
     }
     
@@ -125,7 +125,7 @@ class Network: NSObject {
                     }
                 }
             }
-            completion(photoUrls, serverResponse.response.last?.before ?? Int(NSDate().timeIntervalSince1970 * 1000))
+            completion(photoUrls, serverResponse.response.last?.timestamp ?? Int(NSDate().timeIntervalSince1970 * 1000))
         } catch let err {
             failure(err.localizedDescription)
         }

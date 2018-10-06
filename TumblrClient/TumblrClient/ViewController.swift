@@ -149,7 +149,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 }
                 self.imagesTableView!.reloadData()
             }, failure: { msg in
-    //            print(msg)
+                print(msg)
             })
         }
     }
