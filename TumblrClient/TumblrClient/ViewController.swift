@@ -74,7 +74,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         let cell = tableView.dequeueReusableCell(withIdentifier: ViewController.CELL_ID, for: indexPath)
         cell.imageView?.image = nil
         if let image = images[indexPath.row].image {
-            setImage(cell: cell, image: image)
+            setImage(cell: cell, image: image, indexPath: indexPath)
         } else {
             loadPicture(indexPath: indexPath)
         }
@@ -82,21 +82,51 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
     func loadPicture(indexPath: IndexPath) {
+        print("load \(images[indexPath.row].url) at \(indexPath.row)")
         self.network.loadImage(stringUrl: images[indexPath.row].url, completionHandler: { response in
             if let image = UIImage(data: response) {
                 self.images[indexPath.row].image = image
                 if let cell = self.imagesTableView?.cellForRow(at: indexPath) {
-                    self.setImage(cell: cell, image: image)
+                    self.setImage(cell: cell, image: image, indexPath: indexPath)
                 }
             }
         })
     }
     
-    func setImage(cell: UITableViewCell, image: UIImage) {
-        if let imageView = cell.imageView {
-            print("imageView: \(imageView.frame)")
-            imageView.image = image
+    func setImage(cell: UITableViewCell, image: UIImage, indexPath: IndexPath) {
+        var cellImg: UIImageView
+        if cell.contentView.viewWithTag(1) == nil {
+            cellImg = UIImageView(frame: cell.contentView.frame)
+            cellImg.tag = 1
+            cell.contentView.addSubview(cellImg)
+        } else {
+            cellImg = cell.contentView.viewWithTag(1) as! UIImageView
         }
+        
+        cellImg.contentMode = UIViewContentMode.center
+        cellImg.image = scaleUIImageToSize(image: image, targetSize: CGSize(width: cellImg.frame.width, height: cellImg.frame.height))
+    }
+    
+    func scaleUIImageToSize(image: UIImage, targetSize: CGSize) -> UIImage {
+        let size = image.size
+        
+        let widthRatio  = targetSize.width  / size.width
+        let heightRatio = targetSize.height / size.height
+    
+        var newSize: CGSize
+        if(widthRatio > heightRatio) {
+            newSize = CGSize(width: size.width * heightRatio, height: size.height * heightRatio)
+        } else {
+            newSize = CGSize(width: size.width * widthRatio, height: size.height * widthRatio)
+        }
+        
+        let rect = CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height)
+        UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+        image.draw(in: rect)
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return newImage!
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -112,7 +142,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     func search() {
         clear()
         if let tag = self.tag {
-            network.search(tag: tag, before: self.before, completion: { urls in
+            network.search(tag: tag, before: self.before, completion: { urls, before in
+                self.before = before
                 for url in urls {
                     self.images.append((url: url, image: nil))
                 }

@@ -45,6 +45,7 @@ class Network: NSObject {
     struct Post: Codable {
         let type: String
         let post_url: String
+        let before: Int
         let photos: [Photo]?
     }
     
@@ -97,13 +98,7 @@ class Network: NSObject {
         UserDefaults.standard.removeObject(forKey: Network.OAUTH_CREDENTIAL)
     }
   
-    func search(tag: String, before: Int, completion: @escaping ([String]) -> Void, failure: @escaping (String) -> Void) {
-        if tag != nil {
-            loadMore(tag: tag, before: before, completion: completion, failure: failure)
-        }
-    }
-    
-    func loadMore(tag: String, before: Int, completion: @escaping ([String]) -> Void, failure: @escaping (String) -> Void) {
+    func search(tag: String, before: Int, completion: @escaping ([String], Int) -> Void, failure: @escaping (String) -> Void) {
         url.queryItems = buildQueryItems(tag, before)
         print(url.url!.absoluteString)
         let _ = oauthswift.client.get(url.url!.absoluteString, success: { response in
@@ -111,6 +106,29 @@ class Network: NSObject {
         }, failure: { err in
             failure(err.localizedDescription)
         })
+    }
+    
+    func buildQueryItems(_ tag: String, _ before: Int) -> [URLQueryItem] {
+        return [URLQueryItem(name: "limit", value: "20"),
+                URLQueryItem(name: "before", value: "\(before)"),
+                URLQueryItem(name: "tag", value: tag)]
+    }
+    
+    func handleResponse(data: Data, completion: @escaping ([String], Int) -> Void, failure: @escaping (String) -> Void) {
+        do {
+            let serverResponse = try JSONDecoder().decode(Response.self, from: data)
+            var photoUrls = [String]()
+            for post in serverResponse.response {
+                if let photos = post.photos {
+                    for photo in photos {
+                       photoUrls.append(photo.original_size.url)
+                    }
+                }
+            }
+            completion(photoUrls, serverResponse.response.last?.before ?? Int(NSDate().timeIntervalSince1970 * 1000))
+        } catch let err {
+            failure(err.localizedDescription)
+        }
     }
     
     func loadImage(stringUrl: String, completionHandler: @escaping (Data) -> Void) {
@@ -129,29 +147,6 @@ class Network: NSObject {
             }
         }
         task.resume()
-    }
-    
-    func handleResponse(data: Data, completion: @escaping ([String]) -> Void, failure: @escaping (String) -> Void) {
-        do {
-            let serverResponse = try JSONDecoder().decode(Response.self, from: data)
-            var photoUrls = [String]()
-            for post in serverResponse.response {
-                if let photos = post.photos {
-                    for photo in photos {
-                       photoUrls.append(photo.original_size.url)
-                    }
-                }
-            }
-            completion(photoUrls)
-        } catch let err {
-            failure(err.localizedDescription)
-        }
-    }
-    
-    func buildQueryItems(_ tag: String, _ before: Int) -> [URLQueryItem] {
-        return [URLQueryItem(name: "limit", value: "20"),
-                URLQueryItem(name: "before", value: "\(before)"),
-                URLQueryItem(name: "tag", value: tag)]
     }
 }
 

@@ -6,7 +6,6 @@ target 'TumblrClient' do
   use_frameworks!
 
   # Pods for TumblrClient
-  pod 'Alamofire', '~> 4.7'
   pod 'OAuthSwift', '~> 1.2.0'
   
 end
